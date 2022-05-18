@@ -22,7 +22,6 @@ def is_image_file(filename):
 #                |           |—— traget ——|—— ... 
 #                |——  val  ——|—— input  ——|—— ...
 #                |           |—— target ——|—— ...
-#                |——  test ——|—— BenchmarkNoisyBlocksSrgb
 # 
 # ======================================= Training Dataset ======================================== #
 aug_obj = RandomAugment()
@@ -193,10 +192,3 @@ class WeightedDataset(Dataset):
 
     def __len__(self):
         return self.data_size
-
-if __name__ == "__main__":
-    train_set = PairedImgMultiDataset(["E:\\datasets\\DND"], tag = 'train', img_size = 512)
-    for src_crop, tar_crop in zip(train_set.inp_files, train_set.tar_files):
-        src_nm = src_crop.split('\\')[-1]
-        tar_nm = tar_crop.split('\\')[-1]
-        print(src_nm, " ", tar_nm)

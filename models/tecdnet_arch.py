@@ -140,7 +140,7 @@ class WindowAttention(nn.Module):
         q, k, v = map(
             lambda t: rearrange(t, 'b (nw_h w_h) (nw_w w_w) (h d) -> b h (nw_h nw_w) (w_h w_w) d',
                                 h=h, w_h=self.window_size, w_w=self.window_size), qkv)      
-                                                                     # out: (batch, head, win_num, win_size, head_dim)
+                                            # out: (batch, head, win_num, win_size, head_dim)
         # normalize
         norm_q = torch.norm(q, dim=-1, keepdim=True)
         q = torch.div(q, norm_q)
@@ -151,7 +151,7 @@ class WindowAttention(nn.Module):
         # dots = einsum('b h w i d, b h w j d -> b h w i j', q, k) * self.scale
         dots = einsum('b h w i d, b h w j d -> b h w i j', q, k) - 1
         dots = torch.div(dots, self.var)
-                                                                     # out: (batch, head, win_num, win_size, win_size)
+                                            # out: (batch, head, win_num, win_size, win_size)
 
         if self.relative_pos_embedding:
             dots += self.pos_embedding[self.relative_indices[:, :, 0].numpy(), self.relative_indices[:, :, 1].numpy()]
@@ -160,7 +160,7 @@ class WindowAttention(nn.Module):
 
         if self.shifted:
             dots[:, :, -nw_w:] += self.upper_lower_mask
-            dots[:, :, nw_w - 1::nw_w] += self.left_right_mask       # [note] this part confuse me.
+            dots[:, :, nw_w - 1::nw_w] += self.left_right_mask  
 
         attn = dots.softmax(dim=-1)                                  # out: (batch, head, win_num, win_size, win_size)
 
@@ -397,18 +397,19 @@ def RBF_TECDNet_S():
     return net 
 
  
-if __name__ == "__main__":
-    net = UStructure(256, base_channels = 32, encode_layers = [2, 2, 2, 2])
-    print(net.flops())
+# if __name__ == "__main__":
+#     net = UStructure(256, base_channels = 32, encode_layers = [2, 2, 2, 2])
+#     print(net.flops())
 
-    # first inference
-    import time 
+#     # first inference
+#     import time 
 
-    x = torch.rand(1, 3, 256, 256)
-    y = net(x)
+#     x = torch.rand(1, 3, 128, 128)
+#     y = net(x)
+#     print(y.shape)
 
-    start_t = time.time()
-    for _ in range(200):
-        y = net(x)
-    end_t = time.time()
-    print((end_t - start_t) / 200)
+#     # start_t = time.time()
+#     # for _ in range(200):
+#     #     y = net(x)
+#     # end_t = time.time()
+#     # print((end_t - start_t) / 200)

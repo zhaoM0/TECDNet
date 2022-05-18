@@ -2,6 +2,6 @@
 /utils/__pycache__
 __pycache__
 /datasets
-/experiments/*
+/experiments
 /runs/*
 *.pyc

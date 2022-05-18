@@ -2,6 +2,8 @@
 
 paper: 
 
+![](fig/Fig-1.png)
+
 ### Training
 
 ```python

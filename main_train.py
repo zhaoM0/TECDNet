@@ -10,7 +10,7 @@ from torch.utils.tensorboard import SummaryWriter
 from config import get_option, map_dict
 
 from utils.metrics import torch_psnr
-from dataset import get_train_loader, get_val_loader
+from dataset import get_train_loader, get_val_loader, get_train_multi_loader
 from utils.model_utils import find_checkpoint, save_models_v2
 from utils.dataset_utils import split_image_256_to_128, splice_image_128_to_256
 from utils.dataset_utils import MixUp_AUG
@@ -54,12 +54,12 @@ def train_pipeline(cfg):
         os.makedirs(cfg['pth_dir'])
 
     # setting logger
-    logger = Logger(cfg['pth_dir'] + '/' + cfg['arch'] + '.txt')
+    logger = Logger(cfg['pth_dir'] + '/' + cfg['arch'] + '.txt', is_w=True)
     writer = SummaryWriter(log_dir = os.path.join(cfg['log_dir'], cfg['arch']))
 
     # time 
     now_time = time.strftime("%Y-%m-%d, %H:%M:%S", time.localtime())
-    logger.write("Training start time Is: %s." % now_time)
+    logger.write("Training start time is: %s." % now_time)
     logger.write("1). Initilization, define network and data loader, Waiting ....")
 
     # setting environment
@@ -91,8 +91,8 @@ def train_pipeline(cfg):
         checkpoint = find_checkpoint(pth_dir=cfg['pth_dir'], device=device, load_tag=cfg['resume_tag']) 
         model.load_state_dict(checkpoint['model_state_dict'], strict=False) 
         optimizer.load_state_dict(checkpoint['optim_state_dict'])
-        last_epoch = checkpoint['epoch']
-        best_psnr = checkpoint['avg_psnr']
+        # last_epoch = checkpoint['epoch']
+        # best_psnr = checkpoint['avg_psnr']
 
     # auto resume 
     for _ in range(0, last_epoch + 1):
@@ -106,37 +106,6 @@ def train_pipeline(cfg):
 
     # augment
     mixup_aug = MixUp_AUG()
-
-    # def eval_step():
-    #     model.eval()
-    #     total_loss, total_psnr = 0, 0
-    #     # iteration
-    #     for _, batch_data in enumerate(valid_loader):
-    #         batch_size = batch_data[0].size(0)
-    #         noisy_patch, clean_patch = batch_data[0].to(device), batch_data[1].to(device)
-    #         with torch.no_grad():
-    #             if cfg['img_size'] == 128:
-    #                 noisy_patch = split_image_256_to_128(noisy_patch)
-    #             repair_patch = model(noisy_patch)
-    #             if cfg['img_size'] == 128:
-    #                 repair_patch = splice_image_128_to_256(repair_patch)
-
-    #             # calculate loss
-    #             batch_loss = criterion(repair_patch, clean_patch)
-    #             # update eval loss
-    #             total_loss += batch_loss * batch_size
-    #             # calculate psnr and loss of eval dataset)
-    #             repair_patch = torch.clamp(repair_patch, min = 0., max = 1.)
-    #             target_patch = torch.clamp( clean_patch, min = 0., max = 1.)
-    #             # calculate psnr
-    #             psnr_vec = torch_psnr(repair_patch, target_patch)
-    #             total_psnr += torch.sum(psnr_vec)
-    #     #
-    #     avg_psnr = total_psnr / valid_len
-    #     avg_loss = total_loss / valid_len
-
-    #     model.train()
-    #     return avg_loss, avg_psnr
 
     # training iteration 
     logger.write("2). Training iteration:")
@@ -201,6 +170,7 @@ if __name__ == "__main__":
     # get argment from command line.
     args = get_option()
     cfg = map_dict(args) 
+    print(cfg)
 
     # training process 
     train_pipeline(cfg=cfg)
