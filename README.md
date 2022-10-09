@@ -7,7 +7,7 @@
 
 #### Network Architecture
 
-![](fig/Fig-1.png)
+![](./fig/Fig-1.png)
 
 #### Preparation
 
