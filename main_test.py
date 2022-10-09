@@ -13,7 +13,7 @@ from skimage.metrics import peak_signal_noise_ratio as psnr_loss
 from skimage.metrics import structural_similarity as ssim_loss
 from models import define_network
 
-# ================================== Test Validate Statistic Message ===================================== #
+# ================================= Test Validate Statistic Message ==================================== #
 
 def set_model(arch_name, pth_path, device="cuda:0"):
     # 
@@ -56,7 +56,7 @@ def test_sidd(model, noisy_block, clean_block, device="cuda:0"):
     val_psnr_np = np.array(psnr_list)
     val_simm_np = np.array(simm_list)
 
-    print("Validate dataset average psnr: %2.3f, average simm: %2.5f." % (np.mean(val_psnr_np), np.mean(val_simm_np)))
+    print("[SIDD]: average psnr = %2.3f, average simm = %2.5f." % (np.mean(val_psnr_np), np.mean(val_simm_np)))
     return val_psnr_np, val_simm_np
 
 
@@ -66,7 +66,7 @@ def main_test_sidd(arch_name, pth_path, data_path, device):
     psnr_arr, simm_arr = test_sidd(model, noisy_block, clean_block, device)
     return psnr_arr, simm_arr
 
-# ================================== Inference for single image ===================================== #
+# ================================== Inference for single image ==================================== #
 def main_inference(arch_name, pth_path, img_path, device):
     # 
     model = set_model(arch_name, pth_path, device)
@@ -91,13 +91,13 @@ def main_inference(arch_name, pth_path, img_path, device):
     plt.show()
 
     return repair_img
-# ======================================================================================================== #
+# ================================================================================================== #
 
 if __name__ == "__main__":  
     parser = argparse.ArgumentParser(description="Test setting.")
     parser.add_argument("--arch", type=str, default="RBF_TECDNet_S", help="model name")
-    parser.add_argument("--pth_path", type=str, default="./experiments/TECDNet-S/RBF_TECDNet_S_best.pth", help="weights")
-    parser.add_argument("--data_path", type=str, default="E:\\datasets\\SIDD\\SIDD_patches\\val", help="SIDD validate set")
+    parser.add_argument("--pth_path", type=str, default="./experiments/TECDNet-S-2022/RBF_TECDNet_S.pth", help="weights")
+    parser.add_argument("--data_path", type=str, default="E:/datasets/RW-IMG/SIDD/val", help="SIDD validate set")
     parser.add_argument("--device", type=str, default="cuda:0", help="calculate device")
     args = parser.parse_args()
 
