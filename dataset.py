@@ -16,13 +16,30 @@ def is_image_file(filename):
 	return any(filename.endswith(extension) for extension in ['jpeg', 'JPEG', 'jpg', 'png', 'JPG', 'PNG'])
 
 # ======================================= Dataset Structure ======================================= #
-# define dataset for denoise, 
-# the dataset struture show here
-# SIDD_Patches ——|—— train ——|—— input  ——|—— ... 
-#                |           |—— traget ——|—— ... 
-#                |——  val  ——|—— input  ——|—— ...
-#                |           |—— target ——|—— ...
+# SIDD Denoising Dataset Structure
 # 
+#    SIDD_Patches 
+#        |—— train
+#        |    |—— input
+#        |    |    |—— img1.jpg
+#        |    |    |—— img2.jpg
+#        |    |    |——...
+#        |    |—— target
+#        |    |    |—— img1.jpg
+#        |    |    |—— img2.jpg
+#        |    |    |——...
+#        |—— val
+#        |    |—— input
+#        |    |    |—— img1.jpg
+#        |    |    |—— img2.jpg
+#        |    |    |——...
+#        |    |—— target
+#        |    |    |—— img1.jpg
+#        |    |    |—— img2.jpg
+#        |    |    |——...
+#        |-- test
+#        |    |—— ValidationGtBlocksSrgb.mat 
+#        |    |—— ValidationNoisyBlocksSrgb.mat 
 # ======================================= Training Dataset ======================================== #
 aug_obj = RandomAugment()
 aug_transform = [method for method in dir(aug_obj) if not method.startswith('_')]

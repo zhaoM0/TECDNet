@@ -91,13 +91,14 @@ def main_inference(arch_name, pth_path, img_path, device):
     plt.show()
 
     return repair_img
+
 # ================================================================================================== #
 
 if __name__ == "__main__":  
     parser = argparse.ArgumentParser(description="Test setting.")
     parser.add_argument("--arch", type=str, default="RBF_TECDNet_S", help="model name")
-    parser.add_argument("--pth_path", type=str, default="./experiments/TECDNet-S-2022/RBF_TECDNet_S.pth", help="weights")
-    parser.add_argument("--data_path", type=str, default="E:/datasets/RW-IMG/SIDD/val", help="SIDD validate set")
+    parser.add_argument("--pth_path", type=str, default="./experiments/Pretrained-TECDNet-S/RBF_TECDNet_S.pth", help="weights")
+    parser.add_argument("--data_path", type=str, default="./datasets/RW-IMG/SIDD/val", help="SIDD validate set")
     parser.add_argument("--device", type=str, default="cuda:0", help="calculate device")
     args = parser.parse_args()
 

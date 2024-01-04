@@ -1,6 +1,7 @@
 import os
 import sys 
 import time 
+import json
 
 import torch
 import torch.optim as optim
@@ -54,12 +55,11 @@ def train_pipeline(cfg):
         os.makedirs(cfg['pth_dir'])
 
     # setting logger
-    logger = Logger(cfg['pth_dir'] + '/' + cfg['arch'] + '.txt', is_w=True)
+    logger = Logger(cfg['pth_dir'] + '/' + cfg['arch'] + '.log', write_log_file=True)
     writer = SummaryWriter(log_dir = os.path.join(cfg['log_dir'], cfg['arch']))
 
-    # time 
     now_time = time.strftime("%Y-%m-%d, %H:%M:%S", time.localtime())
-    logger.write("Training start time is: %s." % now_time)
+    logger.write(f"Training start time is: {now_time}.")
     logger.write("1). Initilization, define network and data loader, Waiting ....")
 
     # setting environment
@@ -67,7 +67,7 @@ def train_pipeline(cfg):
     model = define_network(cfg['arch'], {})
     model.to(device)
 
-    logger.write("\t[arch name]: " + cfg['arch'])
+    logger.write(f"\t[arch name]: {cfg['arch']}")
 
     # define optimizer and learning rate scheduler
     optimizer = optim.AdamW(model.parameters(), lr=cfg['lr_init'])
@@ -80,7 +80,7 @@ def train_pipeline(cfg):
     val_loader, val_len = get_val_loader(data_dir=cfg['data_dir'], batch_size=cfg['batch_size'], 
                                          num_workers=2, shuffle=False, img_size=256)
 
-    logger.write("\t[datasets]: train length: %d, validate length: %d." % (train_len, val_len))
+    logger.write(f"\t[datasets]: train length: {train_len}, validate length: {val_len}.")
 
     # training parameters
     last_epoch = 0 
@@ -91,8 +91,6 @@ def train_pipeline(cfg):
         checkpoint = find_checkpoint(pth_dir=cfg['pth_dir'], device=device, load_tag=cfg['resume_tag']) 
         model.load_state_dict(checkpoint['model_state_dict'], strict=False) 
         optimizer.load_state_dict(checkpoint['optim_state_dict'])
-        # last_epoch = checkpoint['epoch']
-        # best_psnr = checkpoint['avg_psnr']
 
     # auto resume 
     for _ in range(0, last_epoch + 1):
@@ -102,9 +100,9 @@ def train_pipeline(cfg):
     criterion = charbonnier_loss
 
     # evaluate step
-    verbose_step = len(train_loader) // 4
+    verbose_step = len(train_loader) // cfg['n_eval_of_each_epoch']
 
-    # augment
+    # data augment
     mixup_aug = MixUp_AUG()
 
     # training iteration 
@@ -118,7 +116,7 @@ def train_pipeline(cfg):
         
         model.train()
         for n_count, batch_data in enumerate(train_tbar):
-            # get patch
+
             batch_size = batch_data[0].size(0)
             noisy_patch, clean_patch = batch_data[0].to(device), batch_data[1].to(device)
 
@@ -131,21 +129,22 @@ def train_pipeline(cfg):
             batch_loss = criterion(repair_patch, clean_patch)
             batch_loss.backward()
             optimizer.step()
-            # calculate total loss
+            
+            # calculate total loss and update tqdm message
             now_train_loss += batch_loss * batch_size
             now_iter_size  += batch_size
-            # update tdqm bar message
             train_tbar.set_postfix(loss = (now_train_loss/now_iter_size).item())
 
             # validate 
             if (n_count + 1) % verbose_step == 0:
-                avg_loss, avg_psnr = eval_step(model, val_loader, val_len, criterion)
+                avg_loss, avg_psnr = eval_step(model, val_loader, val_len, criterion, cfg['device'])
                 model.train()
+                
                 ver_step = n_count + (epoch - 1) * len(train_loader)
                 writer.add_scalar('val/psnr', avg_psnr, ver_step)
                 writer.add_scalar('val/loss', avg_loss, ver_step)
-                logger.write("\nvalidate dataset psnr val is: %3.5f, average loss is: %3.6f, best psnr: %3.5f." 
-                                                                             % (avg_psnr, avg_loss, best_psnr))
+                logger.write(f"\neval average psnr val is: {avg_psnr}, average loss is: {avg_loss}, best psnr: {best_psnr}.")
+
                 # update best result
                 if avg_psnr > best_psnr:
                     best_psnr = avg_psnr
@@ -156,7 +155,7 @@ def train_pipeline(cfg):
                 writer.add_scalar('train/loss', (now_train_loss/now_iter_size).item(), ver_step)
 
         save_models_v2(cfg['pth_dir'], epoch, best_psnr, model, cfg['arch'], optimizer, tag='last')
-        logger.write("Average loss in this epoch is: %3.7f.\n" % (now_train_loss/now_iter_size))
+        logger.write(f"Average loss in this epoch is: {now_train_loss/now_iter_size}.\n")
 
         # update learing rate scheduler
         scheduler_warmup.step()        
@@ -169,8 +168,10 @@ def train_pipeline(cfg):
 if __name__ == "__main__":
     # get argment from command line.
     args = get_option()
-    cfg = map_dict(args) 
-    print(cfg)
+    cfg = map_dict(args)
+    
+    cfg_json = json.dumps(cfg, indent=4)
+    print(cfg_json)
 
     # training process 
     train_pipeline(cfg=cfg)

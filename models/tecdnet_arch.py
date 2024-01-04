@@ -1,11 +1,3 @@
-# --------------------------------------------------------------------------------
-# Copyright (c) 2021 Lucky Zoo. All Rights Reserved.
-# --------------------------------------------------------------------------------
-# Description: Swin Transformer + Residual + UStructure
-# 
-# Author: zhaomo
-# Copyright 2022 Lucky Zoo Authors
-# --------------------------------------------------------------------------------
 import math
 import torch
 import numpy as np
@@ -397,19 +389,13 @@ def RBF_TECDNet_S():
     return net 
 
  
-# if __name__ == "__main__":
-#     net = UStructure(256, base_channels = 32, encode_layers = [2, 2, 2, 2])
-#     print(net.flops())
+if __name__ == "__main__":
+    net = UStructure(256, base_channels = 32, encode_layers = [2, 2, 2, 2])
+    print(net.flops())
 
-#     # first inference
-#     import time 
+    # first inference
+    import time 
 
-#     x = torch.rand(1, 3, 128, 128)
-#     y = net(x)
-#     print(y.shape)
-
-#     # start_t = time.time()
-#     # for _ in range(200):
-#     #     y = net(x)
-#     # end_t = time.time()
-#     # print((end_t - start_t) / 200)
+    x = torch.rand(1, 3, 128, 128)
+    y = net(x)
+    print(y.shape)
